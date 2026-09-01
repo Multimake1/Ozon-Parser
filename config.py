@@ -17,6 +17,14 @@ OZON_PRODUCT_URL = os.getenv('OZON_PRODUCT_URL', 'https://www.ozon.ru/product/')
 GMAIL_CREDENTIALS_FILE = os.getenv('GMAIL_CREDENTIALS_FILE', 'credentials.json')
 GMAIL_TOKEN_FILE = os.getenv('GMAIL_TOKEN_FILE', 'token.json')
 
+# НАСТРОЙКА POSTGRES
+DB_HOST = os.getenv('DB_HOST', 'localhost')
+DB_PORT = int(os.getenv('DB_PORT', 5432))
+DB_NAME = os.getenv('DB_NAME', 'ozon_parser')
+DB_USER = os.getenv('DB_USER', 'a1234')
+DB_PASSWORD = os.getenv('DB_PASSWORD', '')
+DB_TABLE = os.getenv('DB_TABLE', 'products')
+
 # НАСТРОЙКИ ПАРСИНГА
 # Количество попыток при ошибке
 MAX_RETRIES = int(os.getenv('MAX_RETRIES', 3))

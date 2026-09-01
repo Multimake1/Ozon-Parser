@@ -13,6 +13,8 @@ from selenium.common.exceptions import TimeoutException
 
 import config
 
+from database_manager import DatabaseManager
+
 # Парсер Ozon с использованием undetected-chromedriver для обхода антибот системы Ozon
 
 # Настройка логирования
@@ -291,12 +293,49 @@ class OzonParserUndetected:
         if self.driver:
             self.driver.quit()
 
+    # Сохранение товаров в бд
+    def save_products_to_db(self,
+                            products: list  # список словарей с данными товаров
+                            ) -> dict:      # результат сохранения success(bool), saved_count(int), error(str)
+        result = {
+            'success': False,
+            'saved_count': 0,
+            'error': None
+        }
+    
+        if not products:
+            result['error'] = "Нет данных для сохранения"
+            return result
+    
+        db = None
+        try:
+            logger.info("Сохранение в PostgreSQL...")
+            db = DatabaseManager()
+            db.create_table()
+            saved = db.save_products(products)
+        
+            result['success'] = True
+            result['saved_count'] = saved
+        
+            logger.info(f"Сохранено {saved} товаров в PostgreSQL")
+            return result
+        
+        except Exception as e:
+            error_msg = f"Ошибка сохранения в PostgreSQL: {e}"
+            logger.error(error_msg)
+            result['error'] = error_msg
+            return result
+        
+        finally:
+            if db:
+                db.close()
 
 def main():
     # Список SKU для парсинга
     sku_list = ['2359066702', '2829800382']
     
     parser = OzonParserUndetected()
+    products = []
     
     try:
         # Инициализация драйвера
@@ -305,14 +344,23 @@ def main():
         # Парсинг
         products = parser.parse_products(sku_list)
         
-        # Сохранение результатов
-        parser.save_to_csv()
+        if not products:
+            print("\nНет данных для сохранения")
+            return
+        
+        # Сохранение в PostgreSQL
+        result = parser.save_products_to_db(products)
+        
+        if result['success']:
+            print(f"Сохранено {result['saved_count']} товаров в PostgreSQL")
+        else:
+            print(f"{result['error']}")
         
     except Exception as e:
         logger.error(f"Ошибка: {e}")
+    
     finally:
         parser.close()
-
 
 if __name__ == '__main__':
     main()
