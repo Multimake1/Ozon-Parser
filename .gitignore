@@ -1,0 +1,45 @@
+# Виртуальное окружение
+venv/
+env/
+.venv/
+
+# Секреты и ключи
+.env
+credentials.json
+token.json
+cookies.json
+
+# Данные (опционально - можно закомментировать)
+data/*.csv
+data/*.json
+
+# Отладка
+debug_*.png
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+Thumbs.db
+
+# Прочее
+*.tmp
+*.bak
