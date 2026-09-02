@@ -6,7 +6,7 @@ load_dotenv()
 
 # НАСТРОЙКА OZON
 # Номер телефона для входа
-OZON_PHONE = os.getenv('OZON_PHONE', 'xxx') # Ввести свой номер для входа
+OZON_PHONE = os.getenv('OZON_PHONE', '') 
 
 # URL для авторизации и парсинга
 OZON_DATA_URL = os.getenv('OZON_DATA_URL', 'https://data.ozon.ru/')

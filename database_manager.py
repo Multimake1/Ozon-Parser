@@ -30,7 +30,10 @@ class DatabaseManager:
             raise
 
     # Создание таблицы для хранения товаров
-    def create_table(self, table_name: str = None):
+    def create_table(self, 
+                     table_name: str = None
+                     ):
+        
         if table_name is None:
             table_name = config.DB_TABLE
         
@@ -71,7 +74,11 @@ class DatabaseManager:
             raise
 
     # Сохранение списка товаров в бд
-    def save_products(self, products: List[Dict[str, Any]], table_name: str = None) -> int:
+    def save_products(self, 
+                      products: List[Dict[str, Any]], 
+                      table_name: str = None
+                      ) -> int:
+        
         if not products:
             logger.warning("Нет данных для сохранения")
             return 0
@@ -143,7 +150,11 @@ class DatabaseManager:
             raise
 
     # Получение списка товаров из бд
-    def get_products(self, limit: int = 100, table_name: str = None) -> List[Dict[str, Any]]:
+    def get_products(self, 
+                     limit: int = 100, 
+                     table_name: str = None
+                     ) -> List[Dict[str, Any]]:
+        
         if table_name is None:
             table_name = config.DB_TABLE
         
@@ -197,7 +208,11 @@ class DatabaseManager:
             return None
 
     # Удаление товара по SKU
-    def delete_product(self, sku: str, table_name: str = None) -> bool:
+    def delete_product(self, 
+                       sku: str, 
+                       table_name: str = None
+                       ) -> bool:
+        
         if table_name is None:
             table_name = config.DB_TABLE
         
@@ -227,7 +242,10 @@ class DatabaseManager:
             return False
 
     # Очистка таблицы
-    def clear_table(self, table_name: str = None) -> bool:
+    def clear_table(self, 
+                    table_name: str = None
+                    ) -> bool:
+        
         if table_name is None:
             table_name = config.DB_TABLE
         

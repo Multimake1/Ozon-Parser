@@ -32,7 +32,7 @@ class OzonParserUndetected:
         self.results = []
 
     # Инициализация драйвера
-    def _init_driver(self) -> None:
+    def init_driver(self) -> None:
         try:
             options = uc.ChromeOptions()
             options.add_argument('--no-sandbox')
@@ -59,7 +59,9 @@ class OzonParserUndetected:
             raise
 
     # Инициализация загрузки страницы - возвращает true, если загружена
-    def _wait_for_page_load(self, timeout: int = 30) -> bool:
+    def wait_for_page_load(self, 
+                           timeout: int = 30
+                           ) -> bool:
         try:
             WebDriverWait(self.driver, timeout).until(
                 lambda driver: driver.execute_script(
@@ -72,14 +74,16 @@ class OzonParserUndetected:
             return False
 
     # Загрузка страницы товара и получение HTML
-    def _get_page_html(self, sku: str) -> str:
+    def get_page_html(self, 
+                      sku: str
+                      ) -> str:
         url = f"https://www.ozon.ru/product/{sku}/"
         logger.info(f"Загрузка: {url}")
         
         try:
             self.driver.get(url)
             
-            if not self._wait_for_page_load():
+            if not self.wait_for_page_load():
                 raise Exception("Страница не загрузилась")
             
             # Дополнительная задержка для рендеринга JavaScript
@@ -103,7 +107,9 @@ class OzonParserUndetected:
             return ""
 
     # Извлечение json из html - в случае успеха возращает словарь с данными
-    def _extract_json_data(self, html: str) -> dict:
+    def extract_json_data(self, 
+                          html: str
+                          ) -> dict:
         try:
             soup = BeautifulSoup(html, 'lxml')
             
@@ -124,7 +130,10 @@ class OzonParserUndetected:
             return None
 
     # Парсинг данных из html - в случае успеха возвращает словарь с данными товара
-    def _parse_from_html(self, html: str, sku: str) -> dict:
+    def parse_from_html(self, 
+                        html: str, 
+                        sku: str
+                        ) -> dict:
         product = {
             'sku': sku,
             'title': '',
@@ -144,7 +153,7 @@ class OzonParserUndetected:
             soup = BeautifulSoup(html, 'lxml')
             
             # 1. Пробуем извлечь из JSON-LD
-            json_data = self._extract_json_data(html)
+            json_data = self.extract_json_data(html)
             if json_data:
                 product['title'] = json_data.get('name', '')
                 
@@ -230,15 +239,17 @@ class OzonParserUndetected:
         return product
 
     # Парсинг одного товара по SKU
-    def parse_product(self, sku: str) -> dict:
+    def parse_product(self, 
+                      sku: str
+                      ) -> dict:
         logger.info(f"Парсинг SKU: {sku}")
         
-        html = self._get_page_html(sku)
+        html = self.get_page_html(sku)
         if not html:
             logger.error(f"Не удалось получить HTML для SKU {sku}")
             return None
         
-        product = self._parse_from_html(html, sku)
+        product = self.parse_from_html(html, sku)
         
         if product and product['title']:
             logger.info(
@@ -246,11 +257,13 @@ class OzonParserUndetected:
             )
             return product
         else:
-            logger.warning(f"⚠️ Не удалось спарсить SKU {sku}")
+            logger.warning(f"Не удалось спарсить SKU {sku}")
             return None
 
     # Парсинг списка товаров - в случае успеха возвращаем список словарей с товарами
-    def parse_products(self, sku_list: list) -> list:
+    def parse_products(self, 
+                       sku_list: list
+                       ) -> list:
         self.results = []
         total = len(sku_list)
         
@@ -267,7 +280,9 @@ class OzonParserUndetected:
         return self.results
 
     # Сохранение в csv
-    def save_to_csv(self, filename: str = 'data/products_undetected.csv'):
+    def save_to_csv(self, 
+                    filename: str = 'data/products_undetected.csv'
+                    ):
         if not self.results:
             logger.warning("Нет данных для сохранения")
             return
@@ -339,7 +354,7 @@ def main():
     
     try:
         # Инициализация драйвера
-        parser._init_driver()
+        parser.init_driver()
         
         # Парсинг
         products = parser.parse_products(sku_list)

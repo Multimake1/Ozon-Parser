@@ -18,14 +18,17 @@ class GmailCodeExtractor:
     SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
     # Инициализация gmail клиента
-    def __init__(self, credentials_file: str, token_file: str):
+    def __init__(self, 
+                 credentials_file: str, 
+                 token_file: str
+                 ):
         self.credentials_file = credentials_file
         self.token_file = token_file
         self.service = None
-        self._authenticate()
+        self.authenticate()
 
     # Аутентификация в gmail API
-    def _authenticate(self) -> None:
+    def authenticate(self) -> None:
         creds = None
         
         # Загружаем сохраненный токен
@@ -56,12 +59,11 @@ class GmailCodeExtractor:
         logger.info("Успешная аутентификация в Gmail")
 
     # Получение кода потверждения из письма - возвращает код подтверждения
-    def get_verification_code(
-        self, 
-        sender_email: str = 'noreply@ozon.ru', # email отправителя
-        timeout: int = 120,                    # максимальное время ожидания в секундах
-        interval: int = 5                      # интервал проверки в секундах
-    ) -> Optional[str]:
+    def get_verification_code(self, 
+                              sender_email: str = 'noreply@ozon.ru', # email отправителя
+                              timeout: int = 120,                    # максимальное время ожидания в секундах
+                              interval: int = 5                      # интервал проверки в секундах
+                              ) -> Optional[str]:
         
         start_time = time.time()
         last_check_time = start_time

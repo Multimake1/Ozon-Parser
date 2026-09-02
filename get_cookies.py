@@ -8,6 +8,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+
 import config
 
 # Универсальный сбор cookies
@@ -31,7 +36,9 @@ class OzonCookieCollector:
         self.gmail = None
     
     # Ожидание загрузки страницы, что появились все объекты на странице
-    def _wait_for_page_load(self, driver, timeout: int = 30) -> bool:
+    def wait_for_page_load(self, 
+                           driver, 
+                           timeout: int = 30) -> bool:
         try:
             WebDriverWait(driver, timeout).until(
                 lambda d: d.execute_script("return document.readyState") == "complete"
@@ -42,7 +49,9 @@ class OzonCookieCollector:
             return False
 
     # Поиск и нажатие кнопки перейти к аналитике, чтобы сразу перейти на страницу входа
-    def _click_analytics_button(self, driver) -> bool:
+    def click_analytics_button(self, 
+                                driver
+                                ) -> bool:
         # Ждем появления кнопки
         time.sleep(2)
         
@@ -64,7 +73,9 @@ class OzonCookieCollector:
         return True
 
     # Поиск и нажатие кнопки войти
-    def _find_login_button(self, driver) -> bool:
+    def find_login_button(self, 
+                          driver
+                          ) -> bool:
         # Прямой поиск по html
         try:
             xpath = "//button[@type='submit'][contains(., 'Войти')]"
@@ -83,7 +94,10 @@ class OzonCookieCollector:
         return False
 
     # Ввод номера телефона
-    def _enter_phone(self, driver, phone: str) -> bool:
+    def enter_phone(self, 
+                    driver, 
+                    phone: str
+                    ) -> bool:
         try:
             time.sleep(2)
             
@@ -135,7 +149,10 @@ class OzonCookieCollector:
             return False
 
     # Метод ввода кода подтверждения если у нас не ручной вход
-    def _enter_code(self, driver, code: str) -> bool:
+    def enter_code(self, 
+                   driver, 
+                   code: str
+                   ) -> bool:
         try:
             time.sleep(3)
             
@@ -173,7 +190,7 @@ class OzonCookieCollector:
             logger.info(f"Код введен")
             time.sleep(2)
             
-            self._find_login_button(driver)
+            self.find_login_button(driver)
             time.sleep(3)
             return True
             
@@ -182,7 +199,7 @@ class OzonCookieCollector:
             return False
 
     # Метод для получения кода из gmail API
-    def _get_code_from_gmail(self) -> str:
+    def get_code_from_gmail(self) -> str:
         try:
             if not os.path.exists(config.GMAIL_CREDENTIALS_FILE):
                 logger.warning(f"Файл {config.GMAIL_CREDENTIALS_FILE} не найден")
@@ -215,7 +232,7 @@ class OzonCookieCollector:
     # Автоматический режим
     # Инициализация undetected-chromedriver для автоматического режима, 
     # чтобы обойти антибот защиту
-    def _init_driver_auto(self) -> None:
+    def init_driver_auto(self) -> None:
         try:
             options = uc.ChromeOptions()
             options.add_argument('--no-sandbox')
@@ -240,29 +257,31 @@ class OzonCookieCollector:
             raise
 
     # Метод запуска автоматического парсинга с Gmail API
-    def _auto_mode(self, phone: str) -> dict:
-        logger.info("АВТОМАТИЧЕСКИЙ РЕЖИМ")
+    def auto_mode(self, 
+                  phone: str
+                  ) -> dict:
+        logger.info("Автоматический режим")
         
-        self._init_driver_auto()
+        self.init_driver_auto()
         driver = self.driver
         
         logger.info(f"Переход на {config.OZON_DATA_URL}")
         driver.get(config.OZON_DATA_URL)
         
-        if not self._wait_for_page_load(driver):
+        if not self.wait_for_page_load(driver):
             raise Exception("Страница не загрузилась")
         
         time.sleep(2)
         
-        self._click_analytics_button(driver)
+        self.click_analytics_button(driver)
         
-        if not self._enter_phone(driver, phone):
+        if not self.enter_phone(driver, phone):
             raise Exception("Не удалось ввести номер телефона")
         
-        code = self._get_code_from_gmail()
+        code = self.get_code_from_gmail()
         
         if code:
-            if self._enter_code(driver, code):
+            if self.enter_code(driver, code):
                 logger.info("Автоматический вход выполнен успешно!")
                 time.sleep(5)
                 
@@ -276,15 +295,8 @@ class OzonCookieCollector:
             return None
     
     # Ручной режим входа, если автоматический не удался по каким-либо причинам
-    def _manual_mode(self) -> dict:
-        print("ПЕРЕКЛЮЧЕНИЕ В РУЧНОЙ РЕЖИМ")
-        
+    def manual_mode(self) -> dict:
         try:
-            from selenium import webdriver
-            from selenium.webdriver.chrome.options import Options
-            from selenium.webdriver.chrome.service import Service
-            from webdriver_manager.chrome import ChromeDriverManager
-            
             options = Options()
             options.add_argument("--disable-blink-features=AutomationControlled")
             
@@ -300,19 +312,13 @@ class OzonCookieCollector:
             driver.get('https://data.ozon.ru/')
             
             # Ждем загрузки страницы
-            if not self._wait_for_page_load(driver):
+            if not self.wait_for_page_load(driver):
                 logger.warning("Страница загрузилась не полностью")
             
             time.sleep(2)
             
-            # Пытаемся нажать кнопку "Перейти к аналитике"
             logger.info("Пробуем автоматически нажать 'Перейти к аналитике'")
-            self._click_analytics_button(driver)
-            
-            print("ВОЙДИТЕ В АККАУНТ ВРУЧНУЮ")
-            print("\n1. Если кнопка 'Перейти к аналитике' не нажалась - нажмите её сами")
-            print("2. Введите номер телефона и код")
-            print("3. После успешного входа нажмите Enter в этом терминале")
+            self.click_analytics_button(driver)
             
             input("\nПосле входа в аккаунт нажмите Enter...")
             
@@ -329,10 +335,12 @@ class OzonCookieCollector:
             raise
     
     # Основной метод - Сбор cookies с автоматическим переключением на ручной режим
-    def collect_cookies(self, phone: str) -> dict:
+    def collect_cookies(self, 
+                        phone: str
+                        ) -> dict:
         try:
             # Пытаемся автоматический режим
-            cookies = self._auto_mode(phone)
+            cookies = self.auto_mode(phone)
             
             if cookies:
                 return cookies
@@ -344,7 +352,7 @@ class OzonCookieCollector:
                 self.driver.quit()
                 self.driver = None
             
-            return self._manual_mode()
+            return self.manual_mode()
             
         except Exception as e:
             logger.error(f"Ошибка: {e}")
@@ -353,10 +361,12 @@ class OzonCookieCollector:
                 self.driver.quit()
                 self.driver = None
             
-            return self._manual_mode()
+            return self.manual_mode()
 
     # Сохранение cookies в json
-    def save_cookies(self, filename: str = config.COOKIES_FILE) -> None:
+    def save_cookies(self, 
+                     filename: str = config.COOKIES_FILE
+                     ) -> None:
         try:
             with open(filename, 'w') as f:
                 json.dump(self.cookies, f, indent=2)
@@ -376,7 +386,6 @@ def main():
         
     except Exception as e:
         logger.error(f"Не удалось получить cookies: {e}")
-        print("\nСовет: запустите manual_auth.py для ручного входа")
 
 if __name__ == '__main__':
     main()
